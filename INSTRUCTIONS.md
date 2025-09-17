@@ -225,18 +225,10 @@ Option C: small dashboard (2+ linked views)
 
 ---
 
-## 6) Facilitator Demo Script (5–7 minutes)
+## 6) Troubleshooting Quick Guide
 
-1) “Here’s my research question.” (30s)  
-2) “Watch me vibe code it.” (3m)  
-3) “Now I iterate to fix an issue.” (2m)  
-4) “Here’s the viz prompt and result.” (2m)  
-5) “Notice how I…” (30s teaching point)
-
----
-
-## 7) Troubleshooting Quick Guide
-
+- **Error** → Copy and paste error message into AI prompt box with a plea like "HELP!"
+- **Visual Output Error** → Screenshot the relevant section with a description for remediation.
 - **Import error** → Use basic Python libs; for Option C run `!pip install scikit-learn` in Colab.  
 - **File not found** → Double-check `--data_url` or use `--data_path`.  
 - **Code too long** → Run in chunks; print shapes/heads often.  
@@ -246,7 +238,7 @@ Option C: small dashboard (2+ linked views)
 
 ---
 
-## 8) Success Metrics
+## 7) Success Metrics
 
 - **Option A**: Got through meta-dialogue and started code.  
 - **Option B**: Working code + initial results.  
@@ -254,31 +246,3 @@ Option C: small dashboard (2+ linked views)
 
 ---
 
-## 9) Pre-Session Checklist
-
-**Day before**
-- Test all URLs; run end-to-end once.
-- Share links/QR to repo and instructions.
-- Confirm Wi-Fi and room A/V.
-
-**Day of (T-30)**
-- Open needed tabs and Colab.
-- Pre-load data or sample CSVs.
-- Have 2–3 fallback outputs in `outputs/`.
-
----
-
-## 10) Emergency Backup (“Oh Sh*t” Protocol)
-
-If everything breaks:
-- Switch to paper-based pseudo-coding.
-- Demo on facilitator machine with participants directing.
-- Show a short pre-recorded run.
-- Emphasize the **thinking process** over full execution.
-
----
-
-## 11) License / Notes
-
-- Use, remix, and adapt. Keep dependencies minimal.
-- Option C methods require `scikit-learn`.
