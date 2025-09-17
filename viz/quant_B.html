@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Quant B — Scatter</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    .container { max-width: 1000px; margin: auto; }
+    #uploader { margin-bottom: 12px; }
+    .tooltip { position: absolute; pointer-events: none; background: #fff; border: 1px solid #ccc; padding: 6px 8px; border-radius: 4px; font-size: 12px; }
+    svg { border: 1px solid #eee; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Quant Option B — Scatter</h1>
+  <p>Upload <code>quant_B_scatter.json</code> (list of {country,x,y}) or a CSV with columns <code>country,x,y</code>.</p>
+  <input id="uploader" type="file" accept=".json,.csv" />
+  <div id="chart"></div>
+</div>
+<script>
+const uploader = document.getElementById('uploader');
+const chartDiv = d3.select('#chart');
+const w = 900, h = 520, m = {t:30,r:30,b:40,l:50};
+
+function render(data) {
+  chartDiv.selectAll('*').remove();
+  const svg = chartDiv.append('svg').attr('width', w).attr('height', h);
+  const inner = svg.append('g').attr('transform', `translate(${m.l},${m.t})`);
+  const cw = w - m.l - m.r, ch = h - m.t - m.b;
+
+  data = data.filter(d => d.x != null && d.y != null);
+  const x = d3.scaleLinear().domain(d3.extent(data, d => +d.x)).nice().range([0, cw]);
+  const y = d3.scaleLinear().domain(d3.extent(data, d => +d.y)).nice().range([ch, 0]);
+
+  inner.append('g').attr('transform', `translate(0,${ch})`).call(d3.axisBottom(x));
+  inner.append('g').call(d3.axisLeft(y));
+
+  const tt = d3.select('body').append('div').attr('class','tooltip').style('opacity',0);
+
+  inner.selectAll('circle').data(data).join('circle')
+    .attr('cx', d => x(+d.x))
+    .attr('cy', d => y(+d.y))
+    .attr('r', 4)
+    .on('mouseenter', (e,d) => {
+      tt.style('opacity',1).html(`<b>${d.country??''}</b><br>x: ${(+d.x).toFixed(2)}<br>y: ${(+d.y).toFixed(2)}`)
+        .style('left', (e.pageX+10)+'px').style('top', (e.pageY+10)+'px');
+    })
+    .on('mouseleave', () => tt.style('opacity',0));
+}
+
+uploader.addEventListener('change', async (ev) => {
+  const file = ev.target.files[0]; if (!file) return;
+  const text = await file.text();
+  if (file.name.endsWith('.json')) render(JSON.parse(text));
+  else render(d3.csvParse(text).map(r => ({country: r.country, x:+r.x, y:+r.y})));
+});
+</script>
+</body>
+</html>
