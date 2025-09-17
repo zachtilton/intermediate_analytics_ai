@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Qual B — Word Frequencies</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    .container { max-width: 1000px; margin: auto; }
+    #uploader { margin-bottom: 12px; }
+    svg { border: 1px solid #eee; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Qual Option B — Word Frequencies</h1>
+  <p>Upload <code>qual_B_words.json</code> ({term,freq}) or CSV with <code>term,freq</code>.</p>
+  <input id="uploader" type="file" accept=".json,.csv" />
+  <div id="chart"></div>
+</div>
+<script>
+const w = 900, h = 520, m = {t:30,r:30,b:100,l:80};
+function render(data) {
+  data = data.sort((a,b) => d3.descending(+a.freq, +b.freq)).slice(0,50);
+  const svg = d3.select('#chart').html('').append('svg').attr('width', w).attr('height', h);
+  const inner = svg.append('g').attr('transform', `translate(${m.l},${m.t})`);
+  const cw = w - m.l - m.r, ch = h - m.t - m.b;
+
+  const x = d3.scaleBand().domain(data.map(d => d.term)).range([0, cw]).padding(0.1);
+  const y = d3.scaleLinear().domain([0, d3.max(data, d => +d.freq)]).nice().range([ch, 0]);
+
+  inner.append('g').attr('transform', `translate(0,${ch})`).call(d3.axisBottom(x))
+      .selectAll('text').attr('transform', 'rotate(-60)').style('text-anchor','end');
+  inner.append('g').call(d3.axisLeft(y));
+
+  inner.selectAll('rect').data(data).join('rect')
+    .attr('x', d => x(d.term)).attr('y', d => y(+d.freq))
+    .attr('width', x.bandwidth()).attr('height', d => ch - y(+d.freq));
+}
+document.getElementById('uploader').addEventListener('change', async (ev) => {
+  const f = ev.target.files[0]; if (!f) return;
+  const text = await f.text();
+  if (f.name.endsWith('.json')) render(JSON.parse(text));
+  else render(d3.csvParse(text).map(r => ({term: r.term, freq:+r.freq})));
+});
+</script>
+</body>
+</html>
