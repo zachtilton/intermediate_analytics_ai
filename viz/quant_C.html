@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Quant C — Linked Views</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    .container { max-width: 1100px; margin: auto; }
+    .row { display: flex; gap: 24px; }
+    .panel { flex: 1; }
+    .tooltip { position: absolute; pointer-events: none; background: #fff; border: 1px solid #ccc; padding: 6px 8px; border-radius: 4px; font-size: 12px; }
+    svg { border: 1px solid #eee; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Quant Option C — Linked Scatter + Histogram</h1>
+  <p>Upload <code>quant_C_scatter.json</code> ({country,x,y,group}) and (optional) <code>quant_C_hist.json</code> (array of numbers).</p>
+  <input id="uploader1" type="file" accept=".json" /> Scatter JSON
+  <input id="uploader2" type="file" accept=".json" /> Histogram JSON
+  <div class="row">
+    <div class="panel"><h3>Scatter</h3><div id="scatter"></div></div>
+    <div class="panel"><h3>Histogram</h3><div id="hist"></div></div>
+  </div>
+</div>
+<script>
+const w = 520, h = 420, m = {t:30,r:30,b:40,l:50};
+const tt = d3.select('body').append('div').attr('class','tooltip').style('opacity',0);
+let scatterData = [], histData = [];
+
+function renderScatter() {
+  const div = d3.select('#scatter').html('');
+  const svg = div.append('svg').attr('width', w).attr('height', h);
+  const inner = svg.append('g').attr('transform', `translate(${m.l},${m.t})`);
+  const cw = w - m.l - m.r, ch = h - m.t - m.b;
+
+  const x = d3.scaleLinear().domain(d3.extent(scatterData, d => +d.x)).nice().range([0, cw]);
+  const y = d3.scaleLinear().domain(d3.extent(scatterData, d => +d.y)).nice().range([ch, 0]);
+  const color = d3.scaleOrdinal(d3.schemeTableau10);
+
+  inner.append('g').attr('transform', `translate(0,${ch})`).call(d3.axisBottom(x));
+  inner.append('g').call(d3.axisLeft(y));
+
+  inner.selectAll('circle').data(scatterData).join('circle')
+    .attr('cx', d => x(+d.x)).attr('cy', d => y(+d.y)).attr('r', 4)
+    .attr('fill', d => color(d.group ?? 0))
+    .on('mouseenter', (e,d) => {
+      tt.style('opacity',1).html(`<b>${d.country??''}</b><br>x: ${(+d.x).toFixed(2)}<br>y: ${(+d.y).toFixed(2)}<br>group: ${d.group}`)
+        .style('left', (e.pageX+10)+'px').style('top', (e.pageY+10)+'px');
+    })
+    .on('mouseleave', () => tt.style('opacity',0));
+}
+
+function renderHist() {
+  const div = d3.select('#hist').html('');
+  if (!histData.length) { div.append('p').text('Upload quant_C_hist.json to see histogram.'); return; }
+  const svg = div.append('svg').attr('width', w).attr('height', h);
+  const inner = svg.append('g').attr('transform', `translate(${m.l},${m.t})`);
+  const cw = w - m.l - m.r, ch = h - m.t - m.b;
+
+  const x = d3.scaleLinear().domain(d3.extent(histData)).nice().range([0, cw]);
+  const bins = d3.bin().domain(x.domain()).thresholds(20)(histData);
+  const y = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).nice().range([ch, 0]);
+
+  inner.append('g').attr('transform', `translate(0,${ch})`).call(d3.axisBottom(x));
+  inner.append('g').call(d3.axisLeft(y));
+
+  inner.selectAll('rect').data(bins).join('rect')
+    .attr('x', d => x(d.x0)+1).attr('y', d => y(d.length))
+    .attr('width', d => Math.max(0, x(d.x1)-x(d.x0)-1))
+    .attr('height', d => ch - y(d.length));
+}
+
+document.getElementById('uploader1').addEventListener('change', async (ev) => {
+  scatterData = JSON.parse(await ev.target.files[0].text()); renderScatter();
+});
+document.getElementById('uploader2').addEventListener('change', async (ev) => {
+  histData = JSON.parse(await ev.target.files[0].text()); renderHist();
+});
+</script>
+</body>
+</html>
